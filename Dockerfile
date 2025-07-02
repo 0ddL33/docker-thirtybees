@@ -176,17 +176,27 @@ COPY <<EOF /usr/local/bin/start-thirtybees.sh
 #!/bin/bash
 set -e
 
-# Create necessary directories if they don't exist
+# Create startup script
+COPY <<EOF /usr/local/bin/start-thirtybees.sh
+#!/bin/bash
+set -e
+
+# Create ALL necessary directories if they don't exist
 mkdir -p /var/www/html/cache
 mkdir -p /var/www/html/log
 mkdir -p /var/www/html/img
+mkdir -p /var/www/html/mails
+mkdir -p /var/www/html/modules
+mkdir -p /var/www/html/themes
+mkdir -p /var/www/html/translations
 mkdir -p /var/www/html/upload
 mkdir -p /var/www/html/download
+mkdir -p /var/www/html/config
 
-# Set proper permissions
+# Set proper permissions (with escaped backslash)
 chown -R www-data:www-data /var/www/html
-find /var/www/html -type d -exec chmod 755 {} \;
-find /var/www/html -type f -exec chmod 644 {} \;
+find /var/www/html -type d -exec chmod 755 {} \\;
+find /var/www/html -type f -exec chmod 644 {} \\;
 
 # Set writable permissions for specific directories
 chmod -R 777 /var/www/html/cache

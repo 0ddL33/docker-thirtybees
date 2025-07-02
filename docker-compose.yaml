@@ -10,6 +10,7 @@ services:
       - ./html:/var/www/html
       - ./uploads:/var/www/html/upload
       - ./logs:/var/www/html/log
+      - ./start-thirtybees.sh:/usr/local/bin/start-thirtybees.sh
     environment:
       - APACHE_RUN_USER=www-data
       - APACHE_RUN_GROUP=www-data
