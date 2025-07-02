@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  thirtybees:
+    build: .
+    container_name: thirtybees-app
+    ports:
+      - "9080:80"
+    volumes:
+      - ./html:/var/www/html
+      - ./uploads:/var/www/html/upload
+      - ./logs:/var/www/html/log
+    environment:
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+    depends_on:
+      - mysql
+    networks:
+      - thirtybees-network
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: thirtybees-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: thirtybees
+      MYSQL_USER: thirtybees
+      MYSQL_PASSWORD: thirtybees_password
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+      --max_allowed_packet=64M
+      --innodb_buffer_pool_size=256M
+    networks:
+      - thirtybees-network
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: thirtybees-phpmyadmin
+    ports:
+      - "7080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    depends_on:
+      - mysql
+    networks:
+      - thirtybees-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: thirtybees-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - thirtybees-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  thirtybees-network:
+    driver: bridge
